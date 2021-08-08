@@ -11,43 +11,83 @@ namespace HashMap
 
         #region Fields
         private LinkedList<KeyValuePair<TKey, TValue>>[] collection;
-        public int Count { get; private set; }
-        
+        //public int Count => collection.Length;
+
+        public const int bucketSize = 10;
+
+        private IComparer comparer;
+
         #endregion
         public TValue this[TKey key]
         {
             set
             {
-                var pair= GetKeyValuePair(key);
+                var pair = GetKeyValuePair(key);
 
-                if(pair.hasValue)
+                if(pair.HasValue)
                 {
-                    return pair.Value.Value;
+                    Remove(key);
                 }
-                
+
+                Add(key, pair.Value.Value);
+
+                throw new Exception("Key not found!");
             }
             get
             {
-                if(key.)
-                throw new Exception("Key not found!");
+                var pair = GetKeyValuePair(key);
+
+                if (pair.HasValue)
+                {
+                    return pair.Value.Value;
+                }
+
+                throw new KeyNotFoundException();
             }
         }
 
-        private KeyValuePair? GetKeyValuePair(TKey key)
+        private KeyValuePair<TKey, TValue>? GetKeyValuePair(TKey key)
         {
-           if()
+            //From key to number
+
+            //Array[index]
+            var linkedlist = collection[TKeyToIndex(key)];
+
+
+            foreach (var node in linkedlist)
+            {
+                if (node.Key.Equals(key))
+                {
+                    return node;
+                }
+            }
+            return null;
         }
 
+        public int TKeyToIndex(TKey key)
+        {
+            int index = key.GetHashCode() % collection.Length;
+
+            return index;
+        }
         public ICollection<TKey> Keys => throw new NotImplementedException();
 
         public ICollection<TValue> Values => throw new NotImplementedException();
 
 
-        public bool IsReadOnly => throw new NotImplementedException();
+        public bool IsReadOnly => false;
 
         public void Add(TKey key, TValue value)
         {
-            throw new NotImplementedException();
+            int index = TKeyToIndex(key);
+            
+            if(collection[index] == null)
+            {
+                
+
+                collection[index] = new KeyValuePair<TKey,TValue>(key);
+            }
+            
         }
 
         public void Add(KeyValuePair<TKey, TValue> item)
@@ -55,6 +95,17 @@ namespace HashMap
             throw new NotImplementedException();
         }
 
+        public void Resize(int newBucketSize)
+        {
+            var newCollection = new LinkedList<KeyValuePair<TKey, TValue>>[newBucketSize];
+
+            for (int i = 0; i < newCollection.Length; i++)
+            {
+                newCollection[i] = collection[i];
+            }
+
+            collection = newCollection;
+        }
         public void Clear()
         {
             throw new NotImplementedException();
@@ -82,7 +133,20 @@ namespace HashMap
 
         public bool Remove(TKey key)
         {
-            throw new NotImplementedException();
+            int index = key.GetHashCode();
+
+            var list = collection[index];
+            foreach (var node in list)
+            {
+                if(node.Key.Equals(key))
+                {
+                    list.Remove(node);
+
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
