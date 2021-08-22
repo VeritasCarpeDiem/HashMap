@@ -11,13 +11,20 @@ namespace HashMap
 
         #region Fields
         private LinkedList<KeyValuePair<TKey, TValue>>[] collection;
-        //public int Count => collection.Length;
+
+
+        /// <summary>
+        /// Represents count of key value pairs
+        /// </summary>
+        public int Count { get; private set; }
+
+        public int Capacity => collection.Length;
 
         public const int bucketSize = 10;
 
-        private IComparer comparer;
-
         #endregion
+
+        #region Methods
         public TValue this[TKey key]
         {
             set
@@ -74,7 +81,6 @@ namespace HashMap
 
         public ICollection<TValue> Values => throw new NotImplementedException();
 
-
         public bool IsReadOnly => false;
 
         public void Add(TKey key, TValue value)
@@ -83,16 +89,27 @@ namespace HashMap
             
             if(collection[index] == null)
             {
-                
+                var linkedlist = collection[index];
+                linkedlist = new LinkedList<KeyValuePair<TKey, TValue>>();
 
-                collection[index] = new KeyValuePair<TKey,TValue>(key);
+                linkedlist.AddLast(new KeyValuePair<TKey, TValue>(key, value));
+
+                Count++;
+               
             }
-            
+            if(Count == Capacity)
+            {
+                Rehash();
+            }
+            if(ContainsKey(key))
+            {
+                throw new ArgumentException("Duplicate Key exists!");
+            }
         }
 
         public void Add(KeyValuePair<TKey, TValue> item)
         {
-            throw new NotImplementedException();
+            Add(new KeyValuePair<TKey,TValue>(item.Key, item.Value));
         }
 
         public void Resize(int newBucketSize)
@@ -106,29 +123,45 @@ namespace HashMap
 
             collection = newCollection;
         }
+
         public void Clear()
         {
-            throw new NotImplementedException();
+            if(Count>0)
+            {
+                Array.Clear(collection, 0, Capacity);
+            }
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
-            throw new NotImplementedException();
+            int index = TKeyToIndex(item.Key);
+
+            foreach (var kvp in collection[index])
+            {
+                if (collection[index].Equals(item))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public bool ContainsKey(TKey key)
         {
-            throw new NotImplementedException();
+            GetKeyValuePair(key);
+            TryGetValue(key);
         }
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
-            throw new NotImplementedException();
-        }
+            //var newCollection = new LinkedList<KeyValuePair<TKey, TValue>>();
+            //Array.Copy(collection, newCollection, Capacity);
 
-        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
-        {
-            throw new NotImplementedException();
+            foreach (var kvp in collection)
+            {
+                array[arrayIndex] = kvp; //???
+                arrayIndex++;
+            }
         }
 
         public bool Remove(TKey key)
@@ -149,19 +182,49 @@ namespace HashMap
             return false;
         }
 
-        public bool Remove(KeyValuePair<TKey, TValue> item)
+        bool ICollection<KeyValuePair<TKey,TValue>>.Remove(KeyValuePair<TKey, TValue> item)
         {
-            throw new NotImplementedException();
-        }
+            if(Contains(item))
+            {
+                Remove(item.Key);
 
+                return true;
+            }
+
+            return false;
+        }
+        /// <summary>
+        /// https://stackoverflow.com/questions/2432909/what-does-defaultobject-do-in-c#:~:text=The%20default%20keyword%20returns%20the,00%3A00%20%2C%20etc).
+        /// </summary>
         public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
-            throw new NotImplementedException();
+            var pair = GetKeyValuePair(key);
+            if(pair.HasValue)
+            {
+                value = pair.Value.Value;
+                return true;
+            }
+            value = default(TValue);
+
+            return false;
+        }
+
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        {
+            foreach (var ll in collection)
+            {
+                foreach (var kvp in ll)
+                {
+                    yield return kvp;
+                }
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            throw new NotImplementedException();
+            return GetEnumerator();
         }
+        #endregion
     }
+
 }
