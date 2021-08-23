@@ -10,6 +10,9 @@ namespace HashMap
             HashMap<int, string> hashmap = new HashMap<int, string>();
             string output = "hi";
 
+            List<int> other = new List<int>();
+            List<int> l = new List<int>(other);
+
             bool hasValue = hashmap.TryGetValue(5, out output);
             Console.Write(output);
 

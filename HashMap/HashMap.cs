@@ -18,20 +18,29 @@ namespace HashMap
         /// </summary>
         public int Count { get; private set; }
 
+        /// <summary>
+        /// Length of array
+        /// </summary>
         public int Capacity => collection.Length;
-
-        public const int bucketSize = 10;
 
         #endregion
 
         #region Methods
+
+
+        public HashMap(int capacity = 10)
+        {
+            collection = new LinkedList<KeyValuePair<TKey, TValue>>[capacity];
+
+        }
+
         public TValue this[TKey key]
         {
             set
             {
                 var pair = GetKeyValuePair(key);
 
-                if(pair.HasValue)
+                if (pair.HasValue)
                 {
                     Remove(key);
                 }
@@ -60,7 +69,11 @@ namespace HashMap
             //Array[index]
             var linkedlist = collection[TKeyToIndex(key)];
 
-
+            if(linkedlist is null)
+            {
+                return null;
+            }
+            
             foreach (var node in linkedlist)
             {
                 if (node.Key.Equals(key))
@@ -86,8 +99,8 @@ namespace HashMap
         public void Add(TKey key, TValue value)
         {
             int index = TKeyToIndex(key);
-            
-            if(collection[index] == null)
+
+            if (collection[index] == null)
             {
                 var linkedlist = collection[index];
                 linkedlist = new LinkedList<KeyValuePair<TKey, TValue>>();
@@ -95,21 +108,21 @@ namespace HashMap
                 linkedlist.AddLast(new KeyValuePair<TKey, TValue>(key, value));
 
                 Count++;
-               
+
             }
-            if(Count == Capacity)
+            if (Count == Capacity)
             {
-                Rehash();
+                Rehash(Count == Capacity ? Capacity : Capacity * 2);
             }
-            if(ContainsKey(key))
+            if (ContainsKey(key))
             {
                 throw new ArgumentException("Duplicate Key exists!");
             }
         }
 
-        public void Add(KeyValuePair<TKey, TValue> item)
+        void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
         {
-            Add(new KeyValuePair<TKey,TValue>(item.Key, item.Value));
+            Add(item.Key, item.Value);
         }
 
         public void Resize(int newBucketSize)
@@ -126,10 +139,40 @@ namespace HashMap
 
         public void Clear()
         {
-            if(Count>0)
+            if (Count > 0)
             {
                 Array.Clear(collection, 0, Capacity);
             }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void Rehash(int capacity)
+        {
+            var tempCollection = new LinkedList<KeyValuePair<TKey, TValue>>[capacity];
+
+            foreach (var ll in collection)
+            {
+
+                foreach (var kvp in ll)
+                {
+                    int index = TKeyToIndex(kvp.Key);
+
+                    if (tempCollection[index] == null)
+                    {
+                        tempCollection[index] = new LinkedList<KeyValuePair<TKey, TValue>>();
+                    }
+                    tempCollection[index].AddLast(kvp);
+                    //add to it
+                    //Grab index of kvp
+                    //insert into new collection
+
+                }
+            }
+
+            //set our original collection to tempcollection
+            collection = tempCollection;
         }
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
@@ -148,20 +191,28 @@ namespace HashMap
 
         public bool ContainsKey(TKey key)
         {
-            GetKeyValuePair(key);
-            TryGetValue(key);
+            var pair = GetKeyValuePair(key);
+            return pair.HasValue;
         }
 
         public void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex)
         {
+            throw new Exception("");
+
             //var newCollection = new LinkedList<KeyValuePair<TKey, TValue>>();
             //Array.Copy(collection, newCollection, Capacity);
 
-            foreach (var kvp in collection)
-            {
-                array[arrayIndex] = kvp; //???
-                arrayIndex++;
-            }
+            //foreach (LinkedList<KeyValuePair<TKey, TValue>> kvp in collection)
+            //{
+            //    array[arrayIndex] = kvp; //???
+            //    arrayIndex++;
+            //}
+
+            //foreach (KeyValuePair<TKey, TValue> kvp in this)
+            //{
+            //    array[arrayIndex] = kvp; //???
+            //    arrayIndex++;
+            //}
         }
 
         public bool Remove(TKey key)
@@ -171,7 +222,7 @@ namespace HashMap
             var list = collection[index];
             foreach (var node in list)
             {
-                if(node.Key.Equals(key))
+                if (node.Key.Equals(key))
                 {
                     list.Remove(node);
 
@@ -182,9 +233,9 @@ namespace HashMap
             return false;
         }
 
-        bool ICollection<KeyValuePair<TKey,TValue>>.Remove(KeyValuePair<TKey, TValue> item)
+        bool ICollection<KeyValuePair<TKey, TValue>>.Remove(KeyValuePair<TKey, TValue> item)
         {
-            if(Contains(item))
+            if (Contains(item))
             {
                 Remove(item.Key);
 
@@ -196,10 +247,10 @@ namespace HashMap
         /// <summary>
         /// https://stackoverflow.com/questions/2432909/what-does-defaultobject-do-in-c#:~:text=The%20default%20keyword%20returns%20the,00%3A00%20%2C%20etc).
         /// </summary>
-        public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
+        bool IDictionary<TKey, TValue>.TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value)
         {
             var pair = GetKeyValuePair(key);
-            if(pair.HasValue)
+            if (pair.HasValue)
             {
                 value = pair.Value.Value;
                 return true;
@@ -209,12 +260,24 @@ namespace HashMap
             return false;
         }
 
+        public bool TryGetValue(TKey key, out TValue value)
+        {
+            return ((IDictionary<TKey, TValue>)this).TryGetValue(key, out value);
+        }
+
         public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
         {
+
             foreach (var ll in collection)
             {
+                if(ll is null)
+                {
+                    continue;
+                }
+
                 foreach (var kvp in ll)
                 {
+                    
                     yield return kvp;
                 }
             }
