@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
 
 namespace HashMap
@@ -11,8 +12,9 @@ namespace HashMap
 
         #region Fields
         private LinkedList<KeyValuePair<TKey, TValue>>[] collection;
+        #endregion
 
-
+        #region Properties
         /// <summary>
         /// Represents count of key value pairs
         /// </summary>
@@ -23,14 +25,20 @@ namespace HashMap
         /// </summary>
         public int Capacity => collection.Length;
 
+
+        public ICollection<TKey> Keys => this.Select(x => x.Key).ToList();
+
+        public ICollection<TValue> Values => this.Select(x => x.Value).ToList();
+
+        bool ICollection<KeyValuePair<TKey, TValue>>.IsReadOnly => false;
+
         #endregion
 
         #region Methods
 
-
-        public HashMap(int capacity = 10)
+        public HashMap(int defaultCapacity = 10)
         {
-            collection = new LinkedList<KeyValuePair<TKey, TValue>>[capacity];
+            this.collection = new LinkedList<KeyValuePair<TKey, TValue>>[defaultCapacity];
 
         }
 
@@ -84,32 +92,20 @@ namespace HashMap
             return null;
         }
 
-        public int TKeyToIndex(TKey key)
+        private int TKeyToIndex(TKey key)
         {
-            int index = key.GetHashCode() % collection.Length;
+            int index = Math.Abs(key.GetHashCode() % Capacity);
 
             return index;
         }
-        public ICollection<TKey> Keys => throw new NotImplementedException();
-
-        public ICollection<TValue> Values => throw new NotImplementedException();
-
-        public bool IsReadOnly => false;
+       
 
         public void Add(TKey key, TValue value)
         {
             int index = TKeyToIndex(key);
 
-            if (collection[index] == null)
-            {
-                var linkedlist = collection[index];
-                linkedlist = new LinkedList<KeyValuePair<TKey, TValue>>();
-
-                linkedlist.AddLast(new KeyValuePair<TKey, TValue>(key, value));
-
-                Count++;
-
-            }
+            var ll = collection[index];
+            
             if (Count == Capacity)
             {
                 Rehash(Count == Capacity ? Capacity : Capacity * 2);
@@ -118,11 +114,25 @@ namespace HashMap
             {
                 throw new ArgumentException("Duplicate Key exists!");
             }
+            if (collection[index] == null)
+            {
+                
+               ll = new LinkedList<KeyValuePair<TKey, TValue>>();
+
+            }
+            ll.AddLast(new KeyValuePair<TKey, TValue>(key, value));
+
+            Count++;
         }
 
         void ICollection<KeyValuePair<TKey, TValue>>.Add(KeyValuePair<TKey, TValue> item)
         {
             Add(item.Key, item.Value);
+        }
+
+        public void Add(KeyValuePair<TKey,TValue> item)
+        {
+           ((IDictionary<TKey,TValue>)this).Add(item);
         }
 
         public void Resize(int newBucketSize)
@@ -177,15 +187,20 @@ namespace HashMap
 
         public bool Contains(KeyValuePair<TKey, TValue> item)
         {
-            int index = TKeyToIndex(item.Key);
+            //int index = TKeyToIndex(item.Key);
+            var kvp = GetKeyValuePair(item.Key);
 
-            foreach (var kvp in collection[index])
+            if(kvp.HasValue && kvp.Value.Value.Equals(item.Value))
             {
-                if (collection[index].Equals(item))
-                {
-                    return true;
-                }
+                return true;
             }
+            //foreach (KeyValuePair<TKey,TValue> kvp in collection[index])
+            //{
+            //    if (collection[index].Equals(item))
+            //    {
+            //        return true;
+            //    }
+            //}
             return false;
         }
 

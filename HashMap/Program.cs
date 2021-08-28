@@ -7,6 +7,8 @@ namespace HashMap
     {
         static void Main(string[] args)
         {
+            /*
+            #region Hashmap
             HashMap<int, string> hashmap = new HashMap<int, string>();
             string output = "hi";
 
@@ -20,6 +22,19 @@ namespace HashMap
             {
                 ;
             }
+            #endregion 
+            */
+
+            //Memoization memo = new Memoization();
+            //Console.WriteLine(memo.FibMemo(6));
+
+            HashMap<int, string> hashmap = new HashMap<int, string>(10);
+
+            KeyValuePair<int, string> item = new KeyValuePair<int, string>(1, "stan");
+            hashmap.Add(item);
+
+
+            Console.WriteLine(hashmap.Contains(item));
         }
     }
 }

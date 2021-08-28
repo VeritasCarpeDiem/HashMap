@@ -11,17 +11,19 @@ namespace HashMapTest
         [InlineData (1, "Stan")]
         [InlineData(2, "Michael")]
         [InlineData(3, "Karan")]
-        public void TestThatContainsKeyWorks(int key, string value)
+        public void TestForContainsKeyWorks(int key, string value)
         {
             KeyValuePair<int, string> test= new KeyValuePair<int, string>(key, value);
 
-            var hashmapuu = new HashMap<int, string>(10);
+            var hashmapuu = new HashMap<int, string>();
 
-            bool expected = true;
+            hashmapuu.Add(test);
+
+            //bool expected = true;
             
             bool result = hashmapuu.Contains(test);
 
-            Console.WriteLine(expected == result);
+            Assert.True(result);
             
         }
 
