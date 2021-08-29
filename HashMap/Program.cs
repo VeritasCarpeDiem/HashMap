@@ -7,34 +7,32 @@ namespace HashMap
     {
         static void Main(string[] args)
         {
-            /*
+
             #region Hashmap
-            HashMap<int, string> hashmap = new HashMap<int, string>();
-            string output = "hi";
+            Comparer<int> comparer = Comparer<int>.Create((x, y) => x.CompareTo(y));
 
-            List<int> other = new List<int>();
-            List<int> l = new List<int>(other);
 
-            bool hasValue = hashmap.TryGetValue(5, out output);
-            Console.Write(output);
+            HashMap<int, string> hashmap = new HashMap<int, string>(Comparer<int>.Default, 10);
+            //string output = "hi";
 
-            foreach (var item in hashmap)
-            {
-                ;
-            }
+            //List<int> other = new List<int>();
+            //List<int> l = new List<int>(other);
+
+            //bool hasValue = hashmap.TryGetValue(5, out output);
+            //Console.Write(output);
+
+
+            hashmap.Add(1, "stan");
+
+            hashmap.Clear();
+            ;
             #endregion 
-            */
+            
 
             //Memoization memo = new Memoization();
             //Console.WriteLine(memo.FibMemo(6));
 
-            HashMap<int, string> hashmap = new HashMap<int, string>(10);
-
-            KeyValuePair<int, string> item = new KeyValuePair<int, string>(1, "stan");
-            hashmap.Add(item);
-
-
-            Console.WriteLine(hashmap.Contains(item));
+           
 
           
             

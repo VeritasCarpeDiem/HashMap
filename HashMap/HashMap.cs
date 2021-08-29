@@ -12,20 +12,22 @@ namespace HashMap
 
         #region Fields
         private LinkedList<KeyValuePair<TKey, TValue>>[] collection;
-        private const int defaultCapacity = 10; 
-        #endregion
-
-        #region Properties
-        /// <summary>
-        /// Represents count of key value pairs
-        /// </summary>
-        public int Count { get; private set; }
+        private const int defaultCapacity = 10;
 
         /// <summary>
         /// Length of array
         /// </summary>
         public int Capacity => collection.Length;
+        #endregion
 
+        #region Properties
+
+        private Comparer<TKey> Comparer { get; set; }
+
+        /// <summary>
+        /// Represents count of key value pairs
+        /// </summary>
+        public int Count { get; private set; }
 
         public ICollection<TKey> Keys => this.Select(x => x.Key).ToList();
 
@@ -35,13 +37,25 @@ namespace HashMap
 
         #endregion
 
-        #region Methods
+        #region Constructors
 
-        public HashMap(int defaultCapacity = defaultCapacity)
+        public HashMap(int defaultCapacity= 10)
         {
+            Count = 0;
             this.collection = new LinkedList<KeyValuePair<TKey, TValue>>[defaultCapacity];
-
         }
+        public HashMap(Comparer<TKey> comparer, int defaultCapacity = defaultCapacity)
+        {
+            Count = 0;
+            this.collection = new LinkedList<KeyValuePair<TKey, TValue>>[defaultCapacity];
+             
+            this.Comparer = comparer;
+            
+        }
+
+        #endregion
+
+        #region Methods
 
         public TValue this[TKey key]
         {
@@ -52,11 +66,15 @@ namespace HashMap
                 if (pair.HasValue)
                 {
                     Remove(key);
+                    Add(key, pair.Value.Value);
+                }
+                else
+                {
+                    throw new KeyNotFoundException();
                 }
 
-                Add(key, pair.Value.Value);
+                
 
-                throw new Exception("Key not found!");
             }
             get
             {
@@ -71,7 +89,7 @@ namespace HashMap
             }
         }
 
-        private KeyValuePair<TKey, TValue>? GetKeyValuePair(TKey key)
+        public KeyValuePair<TKey, TValue>? GetKeyValuePair(TKey key)
         {
             //From key to number
 
@@ -105,7 +123,7 @@ namespace HashMap
         {
             int index = TKeyToIndex(key);
 
-            //var ll = collection[index];
+             ref var ll = ref collection[index];
             
             if (Count == Capacity)
             {
@@ -117,11 +135,11 @@ namespace HashMap
             }
             if (collection[index] == null)
             {
-                
-               collection[index] = new LinkedList<KeyValuePair<TKey, TValue>>();
 
+                ll = new LinkedList<KeyValuePair<TKey, TValue>>();
             }
-            collection[index].AddLast(new KeyValuePair<TKey, TValue>(key, value));
+
+                ll.AddLast(new KeyValuePair<TKey, TValue>(key, value));
 
             Count++;
         }
@@ -152,7 +170,9 @@ namespace HashMap
         {
             if (Count > 0)
             {
+                
                 Array.Clear(collection, 0, Capacity);
+                Count = 0;
             }
         }
 
