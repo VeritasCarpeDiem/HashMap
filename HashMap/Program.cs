@@ -35,6 +35,10 @@ namespace HashMap
 
 
             Console.WriteLine(hashmap.Contains(item));
+
+          
+            
         }
+
     }
 }

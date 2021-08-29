@@ -12,6 +12,7 @@ namespace HashMap
 
         #region Fields
         private LinkedList<KeyValuePair<TKey, TValue>>[] collection;
+        private const int defaultCapacity = 10; 
         #endregion
 
         #region Properties
@@ -36,7 +37,7 @@ namespace HashMap
 
         #region Methods
 
-        public HashMap(int defaultCapacity = 10)
+        public HashMap(int defaultCapacity = defaultCapacity)
         {
             this.collection = new LinkedList<KeyValuePair<TKey, TValue>>[defaultCapacity];
 
@@ -104,11 +105,11 @@ namespace HashMap
         {
             int index = TKeyToIndex(key);
 
-            var ll = collection[index];
+            //var ll = collection[index];
             
             if (Count == Capacity)
             {
-                Rehash(Count == Capacity ? Capacity : Capacity * 2);
+                Rehash(Capacity * 2);
             }
             if (ContainsKey(key))
             {
@@ -117,10 +118,10 @@ namespace HashMap
             if (collection[index] == null)
             {
                 
-               ll = new LinkedList<KeyValuePair<TKey, TValue>>();
+               collection[index] = new LinkedList<KeyValuePair<TKey, TValue>>();
 
             }
-            ll.AddLast(new KeyValuePair<TKey, TValue>(key, value));
+            collection[index].AddLast(new KeyValuePair<TKey, TValue>(key, value));
 
             Count++;
         }
@@ -164,6 +165,7 @@ namespace HashMap
 
             foreach (var ll in collection)
             {
+                if (ll is null) continue;
 
                 foreach (var kvp in ll)
                 {
